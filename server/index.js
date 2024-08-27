@@ -107,7 +107,7 @@ passport.deserializeUser(async (id, done) => {
 });
 
 app.get("/api", (req, res) => {
-  res.send("fuck my life");
+  res.send("Hello user");
 });
 
 app.get("/api/place", async (req, res) => {
