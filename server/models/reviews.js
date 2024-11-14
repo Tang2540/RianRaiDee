@@ -3,10 +3,13 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const ReviewSchema = new Schema({
-    place_id: { type: Schema.Types.ObjectId, ref: 'Place', required: true },
+    course_id: { type: Schema.Types.ObjectId, ref: 'Course', required: true },
     user_id: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     content:String,
-    ratings:Number
+    grade: String,
+    sec: Number,
+    year: Number,
+    publish_date: String
 })
 
 module.exports = mongoose.model('Review',ReviewSchema)

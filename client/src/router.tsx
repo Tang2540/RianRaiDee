@@ -5,11 +5,13 @@ import Place from './pages/Place'
 import SuggestEdit from './pages/SuggestEdit';
 import Auth from './layouts/Auht';
 import Profile from './pages/Profile';
+import Setting from './pages/Setting';
 
 const fetchPlace = async ({params}:LoaderFunctionArgs) => {
   const id = params.id
   const res = await fetch(`http://localhost:3000/api/place/${id}`);
   const data = await res.json();
+  console.log(data)
   return data
 }
 
@@ -27,7 +29,8 @@ const router = createBrowserRouter([
         {path:"/",element:<Home />},
         {path:"/:id",element:<Place/>,loader: fetchPlace},
         {path:"/edit/:id",element:<SuggestEdit/>},
-        {path:"/profile/:id",element:<Profile/>,loader: fetchUser}
+        {path:"/profile/:id",element:<Profile/>,loader: fetchUser},
+        {path:"/setting",element:<Setting/>}
       ]
     },
     {path:"/auth",element:<Auth/>}

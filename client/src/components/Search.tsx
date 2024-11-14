@@ -3,12 +3,12 @@ import { Link } from "react-router-dom";
 import { useSearch } from "../utils/SearchQuery/useSearch";
 
 const Search = () => {
-  const {suggestions, results, setResults,fetchSuggestions} = useSearch()
+  const { suggestions, fetchSuggestions } = useSearch();
 
   const [query, setQuery] = useState("");
 
   useEffect(() => {
-    fetchSuggestions(query)
+    fetchSuggestions(query);
 
     const debounceTimer = setTimeout(() => {
       fetchSuggestions(query);
@@ -18,21 +18,18 @@ const Search = () => {
 
     return () => clearTimeout(debounceTimer);
   }, [query]);
-  
-  const handleClick = (name:string) => {
-    fetchSuggestions(name)
-    setResults(suggestions)
-    console.log(results)
-  }
 
   return (
-    <>
+    <div className="max-w-[58rem] w-4/5">
       <label className="input input-bordered flex items-center gap-2">
         <input
+        data-test="search-input"
           type="text"
           className="grow"
-          placeholder="Search"
-          onChange={(e)=>{setQuery(e.target.value)}}
+          placeholder="ค้นหาวิชาด้วยรหัสวิชา, ชื่อวิชาภาษาไทยหรือภาษาอังกฤษ"
+          onChange={(e) => {
+            setQuery(e.target.value);
+          }}
         />
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -48,21 +45,21 @@ const Search = () => {
         </svg>
       </label>
 
-      <ul className="menu rounded-box w-56">
-        {suggestions && Array.isArray(suggestions) &&suggestions?.map((item,index:number)=>(
-            <li key={index}>
-              {item.type=='province'?
-              (<a onClick={()=>{handleClick(item.name)}}>{item.name}</a>):
-              (<Link to={`/${item._id}`}>
+      <ul className="menu rounded-box">
+        {suggestions &&
+          Array.isArray(suggestions) &&
+          suggestions?.map((item, index: number) => (
+            <li key={index} data-test="search-results">
+              <Link to={`/${item._id}`} data-test="result-item">
                 <div>
-                <h2>{item.name}</h2>
-                <p>{item.province}</p>
+                  <h2>{item.course_id}</h2>
+                  <p>{item.name}</p>
                 </div>
-              </Link>)}
+              </Link>
             </li>
-        ))}
+          ))}
       </ul>
-    </>
+    </div>
   );
 };
 

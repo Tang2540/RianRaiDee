@@ -1,19 +1,17 @@
 import { createContext, useState, ReactNode } from 'react';
 import axios from 'axios';
 
-interface Place {
-    type: string;
+interface Course {
     _id: string;
+    course_id: string;
     name: string;
-    state: string | null;
-    province: string | null
 }
 
 export interface SearchContextValue {
-    suggestions: Place[] | null | undefined;
-    results: Place[] | null | undefined;
-    setSuggestions: React.Dispatch<React.SetStateAction<Place[] | null | undefined>>;
-    setResults: React.Dispatch<React.SetStateAction<Place[] | null | undefined>>;
+    suggestions: Course[] | null | undefined;
+    results: Course[] | null | undefined;
+    setSuggestions: React.Dispatch<React.SetStateAction<Course[] | null | undefined>>;
+    setResults: React.Dispatch<React.SetStateAction<Course[] | null | undefined>>;
     fetchSuggestions: (query:string) => Promise<void>;
   }
 
@@ -24,8 +22,8 @@ interface SearchProviderProps {
   }
 
 export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
-  const [suggestions, setSuggestions] = useState<Place[] | null | undefined>(null);
-  const [results, setResults] = useState<Place[] | null | undefined>(null);
+  const [suggestions, setSuggestions] = useState<Course[] | null | undefined>(null);
+  const [results, setResults] = useState<Course[] | null | undefined>(null);
 
   const fetchSuggestions = async (query:string) => {
     

@@ -2,7 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const {ObjectId} = require('mongoose').Types
 const dotenv = require("dotenv");
-const Place = require("./models/places");
+const Course = require("./models/course");
 const User = require("./models/users");
 const Review = require("./models/reviews");
 const cors = require("cors");
@@ -11,12 +11,14 @@ const LocalStrategy = require("passport-local").Strategy;
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const bcrypt = require("bcrypt");
 const session = require("express-session");
+const multer = require('multer');
 const app = express();
 
 app.use(cors({
   origin: 'http://localhost:5173', // Your frontend URL
   credentials: true
 }));
+app.use(express.static('public'));
 
 dotenv.config();
 
@@ -28,13 +30,28 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+      secure: false, // Use secure cookies in production
+      httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000 // 24 hours
     }
   })
 );
 app.use(passport.initialize());
 app.use(passport.session());
+
+const storage = multer.diskStorage({
+  destination: (req,file,cb) => {
+    cb(null,'public/images')
+  },
+  filename: (req,file,cb) => {
+    cb(null, 'file-' + Date.now() + '.' +
+    file.originalname.split('.')[file.originalname.split('.').length-1])
+  }
+})
+
+const upload = multer({
+  storage: storage
+})
 
 const connectMongoDB = async () => {
   try {
@@ -54,14 +71,14 @@ connectMongoDB();
 
 // Passport local strategy
 passport.use(
-  new LocalStrategy(async (username, password, done) => {
+  new LocalStrategy(async ( username,password, done) => {
     try {
       const user = await User.findOne({ username: username });
-      if (!user) return done(null, false, { message: "Incorrect username." });
+      if (!user) return done(null, false, { message: "อีเมลไม่ถูกต้อง" });
 
       const isValidPassword = await bcrypt.compare(password, user.password);
       if (!isValidPassword)
-        return done(null, false, { message: "Incorrect password." });
+        return done(null, false, { message: "รหัสผ่านไม่ถูกต้อง" });
 
       return done(null, user);
     } catch (err) {
@@ -83,6 +100,7 @@ async function(accessToken, refreshToken, profile, done) {
       user = await User.create({
         googleId: profile.id,
         username: profile.displayName,
+        picture: profile.photos[0].value
         // You might want to handle the case where the username already exists
       });
     }
@@ -107,37 +125,29 @@ passport.deserializeUser(async (id, done) => {
 });
 
 app.get("/api", (req, res) => {
-  res.send("Hello user");
+  res.send("fuck my life");
 });
 
 app.get("/api/place", async (req, res) => {
-  const parks = await Place.find({});
-  res.send(parks);
+  const courses = await Course.find({});
+  res.send(courses);
 });
 
 app.get('/api/place/suggestions', async (req, res) => {
   const { q } = req.query;
   if (q && q.length > 2) {
     try {
-      const placeSuggestions = await Place.find({
+      const placeSuggestions = await Course.find({
         $or: [
           { name: { $regex: q, $options: 'i' } },
-          { province: { $regex: q, $options: 'i' } }
+          { course_id: { $regex: q, $options: 'i' } }
         ]
       }).limit(5);
 
-      const provinceSuggestions = await Place.distinct('province', {
-        province: { $regex: q, $options: 'i' }
-      });
-
       const suggestions = [
-        ...provinceSuggestions.slice(0, 5).map(province => ({
-          type: 'province',
-          name: province
-        })),
-        ...placeSuggestions.map(place => ({
-          type: 'place',
-          ...place.toObject()
+        ...placeSuggestions.map(course => ({
+          type: 'course',
+          ...course.toObject()
         }))
       ];
 
@@ -162,14 +172,37 @@ app.get("/api/profile", async (req, res) => {
 
 app.get("/api/profile/:id",async(req,res)=>{
   const user = await User.findById(req.params.id);
-  res.send(user);
+  const reviews = await Review.aggregate([
+    { $match: { user_id: new ObjectId(req.params.id) } },
+    {
+      $lookup: {
+        from: "courses",
+        localField: "course_id",
+        foreignField: "_id",
+        as: "course"
+      }
+    },
+    {
+      $unwind: "$course"
+    },
+    {
+      $project: {
+        _id: 1,
+        course_id: 1,
+        content: 1,
+        "course.name": 1
+        // Add other fields you want to include
+      }
+    }
+  ]);
+  res.send({user:user,reviews:reviews});
 })
 
 app.get("/api/place/:id", async (req, res) => {
   const {id} = req.params
-  const park = await Place.findById(id);
+  const course = await Course.findById(id);
   const review = await Review.aggregate([
-    { $match: { place_id: new ObjectId(id) } },
+    { $match: { course_id: new ObjectId(id) } },
     {
       $lookup: {
         from: "users",
@@ -183,33 +216,39 @@ app.get("/api/place/:id", async (req, res) => {
     },
     {
       $project: {
-        _id: 1,
-        place_id: 1,
+        course_id: 1,
         user_id: 1,
         content: 1,
-        ratings: 1,
-        "user.username": 1
+        grade: 1,
+        sec: 1,
+        year: 1,
+        publish_date: 1,
+        "user.display_name": 1,
+        "user.picture":1
         // Add other fields you want to include
       }
     }
-  ])
-  res.send({park:park,review:review});
+  ]);
+  res.send({course:course,review:review});
 });
 
 app.post("/api/review/:id", async (req,res)=>{
-  const {username,content,ratings} = req.body
+  const {username,content, grade,sec,year,publish_date} = req.body
   const {id} = req.params
   try{
     const user = await User.findOne({username:username})
     await Review.create({
-      place_id: id,
+      course_id: id,
       user_id: user._id,
       content,
-      ratings
+      grade,
+      sec,
+      year,
+      publish_date
     })
-    const park = await Place.findById(id);
+    const course = await Course.findById(id);
     const review = await Review.aggregate([
-      { $match: { place_id: new ObjectId(id) } },
+      { $match: { course_id: new ObjectId(id) } },
       {
         $lookup: {
           from: "users",
@@ -224,7 +263,7 @@ app.post("/api/review/:id", async (req,res)=>{
       {
         $project: {
           _id: 1,
-          place_id: 1,
+          course_id: 1,
           content: 1,
           ratings: 1,
           "user.username": 1
@@ -232,7 +271,8 @@ app.post("/api/review/:id", async (req,res)=>{
         }
       }
     ])
-    res.status(201).send({park:park,review:review})
+
+    res.status(201).send({course:course,review:review})
   } catch (err) {
     res.status(500).send(err)
   }
@@ -240,14 +280,21 @@ app.post("/api/review/:id", async (req,res)=>{
 
 //routes
 app.post("/register", async (req, res) => {
+  const {displayName, email, password} = req.body
   try {
-    const user = await User.findOne({ username: req.body.username });
-    if (user) {
-      res.status(400).send('Username or email already exists')
-    } else {
-    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    const existedEmail = await User.findOne({ username: email });
+    const existedName = await User.findOne({ display_name: displayName })
+    if (existedEmail) {
+      res.status(400).send('อีเมลนี้ได้ถูกใช้งานแล้ว')
+    }
+    else if (existedName) {
+      res.status(400).send('ชื่อนี้ถูกใช้งานแล้ว')
+    } 
+    else {
+    const hashedPassword = await bcrypt.hash(password, 10);
     await User.create({
-      username: req.body.username,
+      username: email,
+      display_name: displayName,
       password: hashedPassword,
     });
     res.status(201).send("User registered successfully");
@@ -255,7 +302,7 @@ app.post("/register", async (req, res) => {
   } catch (err) {
     if (err.code === 11000) {
       // MongoDB duplicate key error
-      res.status(400).send('Username or email already exists');
+      res.status(400).json({err_msg:'Username or email already exists'});
     } else {
       res.status(500).send('Error registering user');
     }
@@ -304,14 +351,39 @@ app.post("/logout", (req, res) => {
 });
 
 app.get('/user', (req, res) => {
+    console.log('Session:', req.session);
+    console.log('User:', req.user);
+    console.log('Is Authenticated:', req.isAuthenticated());
   if (req.isAuthenticated()) {
     res.send({ user: req.user });
-    console.log('yes')
   } else {
     res.status(401).send({ message: "Not authenticated" });
   }
 });
 
+app.post('/upload', upload.single('image'), async (req, res) => {
+  if (!req.isAuthenticated()) {
+    console.log(req.isAuthenticated())
+    return res.status(401).json({ error: 'User not authenticated' });
+  }
+
+  if (!req.file) {
+    return res.status(400).json({ error: 'No image file uploaded' });
+  }
+
+  const image = req.file.filename;
+  const user = req.user;
+
+  try {
+    await User.findByIdAndUpdate(user._id,{picture:image});
+  } catch (error) {
+    console.error('Error updating profile picture:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
 app.listen((port = 3000), () => {
   console.log("Listening on port " + port);
 });
+

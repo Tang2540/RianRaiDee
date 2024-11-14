@@ -4,6 +4,9 @@ import axios from 'axios';
 interface User {
     _id: string;
     username: string;
+    display_name: string;
+    picture: string;
+    googleId: string | null
 }
 
 export interface AuthContextValue {
