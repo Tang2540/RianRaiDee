@@ -361,6 +361,23 @@ app.get('/user', (req, res) => {
   }
 });
 
+app.post('/changeName',async (req,res)=>{
+  if (!req.isAuthenticated()) {
+    console.log(req.isAuthenticated())
+    return res.status(401).json({ error: 'User not authenticated' });
+  }
+  const user = req.user;
+  const {displayName} = req.body;
+  try {
+    await User.findByIdAndUpdate(user._id,{display_name:displayName});
+    res.send({user:user})
+    console.log(user)
+  } catch (error) {
+    console.error('Error updating profile picture:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+})
+
 app.post('/upload', upload.single('image'), async (req, res) => {
   if (!req.isAuthenticated()) {
     console.log(req.isAuthenticated())

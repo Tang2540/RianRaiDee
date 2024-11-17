@@ -33,6 +33,25 @@ function Setting() {
     }
   };
 
+  const handleNameChange = async () => {
+    checkAuthStatus();
+    if (user) {
+      try {
+        await axios.post("http://localhost:3000/changeName",displayName)
+        .then(res=>{
+          setDisplayName("")
+          console.log(res)
+        })
+        .catch(err=>{
+          console.log(err)
+        })
+      }
+      catch (err) {
+        console.log(err)
+      }
+    }
+  }
+
   return (
     <>
       <div className="container mx-auto">
@@ -79,6 +98,7 @@ function Setting() {
                     }}
                     required
                   />
+                  <button className="btn btn-outline w-1/3" onClick={handleNameChange}>เปลี่ยนชื่อ</button>
                 </div>
               </div>
             </div>
