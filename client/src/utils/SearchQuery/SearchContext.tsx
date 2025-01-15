@@ -30,7 +30,7 @@ export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
     if (query.length > 2) {
       try {
         const response = await axios.get(
-          `http://localhost:3000/api/place/suggestions?q=${query}`
+          `http://localhost:3000/api/course/suggestions?q=${query}`
         );
         setSuggestions(response.data);
       } catch (error) {

@@ -1,5 +1,5 @@
 import { useLoaderData, Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAuth } from "../utils/Auth/useAuth";
 import CommentBox from "../components/CommentBox";
 import axios from "axios";
@@ -31,15 +31,12 @@ const Place = () => {
   const fetchedData = useLoaderData() as PlaceData;
   const { user, checkAuthStatus } = useAuth();
 
-  useEffect(() => {
-    checkAuthStatus();
-  }, [checkAuthStatus]);
 
   const [data, setData] = useState<PlaceData>(fetchedData);
   const [comment, setComment] = useState("");
   const [grade, setGrade] = useState("");
-  const [sec, setSec] = useState<number>();
-  const [year, setYear] = useState<number>();
+  const [sec, setSec] = useState("");
+  const [year, setYear] = useState("");
 
   function formatDateThai(timestamp:number) {
     const date = new Date(timestamp);
@@ -52,6 +49,7 @@ const Place = () => {
 
 
   const handleClick = async () => {
+    checkAuthStatus()
     await axios
       .post(`http://localhost:3000/api/review/${data.course._id}`, {
         username: user?.username,
@@ -65,12 +63,15 @@ const Place = () => {
         setData(res.data);
         setComment("");
         setGrade("");
-        setSec(parseInt(""));
-        setYear(parseInt(""));
+        setSec("");
+        setYear("");
       })
       .catch((err) => {
         console.log(err);
       });
+
+      document.getElementById('my_modal_3')?.removeAttribute('open');
+      
   };
 
   return (
@@ -89,15 +90,16 @@ const Place = () => {
                     "my_modal_3"
                   ) as HTMLDialogElement;
                   modal.showModal();
-                }}>เขียนรีวิว</button>
+                }} data-test="open-review-box-btn">เขียนรีวิว</button>
         </div>
+        <div className="divider"></div>
 
 
         <div className={`flex flex-col mt-6 ${data.review && data.review.length > 0 ? '':'justify-center items-center'}`}>
 
           {data.review && data.review.length > 0 ? (
             data.review.map((item, index) => (
-              <div key={index}>
+              <div key={index} data-test="comment-box">
                 <CommentBox placeItem={item} />
               </div>
             ))
@@ -117,25 +119,35 @@ const Place = () => {
    {user ?
     (<div className="flex flex-col gap-11">
     <h3 className="font-bold text-lg">เขียนรีวิว</h3>
-    <textarea className="textarea textarea-bordered w-full mt-5" placeholder="กรุณารีวิวด้วยคำที่สุภาพ" value={comment} onChange={(e)=>{setComment(e.target.value)}}></textarea>
+    <textarea className="textarea textarea-bordered w-full mt-5" placeholder="กรุณารีวิวด้วยคำที่สุภาพ" value={comment} onChange={(e)=>{setComment(e.target.value)}} data-test="review-text"></textarea>
     <div>
-      <h4>เกรดที่ได้</h4>
-      <input type="text" className="input input-bordered w-full max-w-xs" value={grade} onChange={(e)=>{setGrade(e.target.value)}}/>
-    </div>
+  <h4>เกรดที่ได้</h4>
+  <select className="select select-bordered w-full max-w-xs" value={grade} onChange={(e)=>{setGrade(e.target.value)}}>
+  <option disabled selected>เลือกเกรด</option>
+  <option value="A">A</option>
+  <option value="B+">B+</option>
+  <option value="B">B</option>
+  <option value="C+">C+</option>
+  <option value="C">C</option>
+  <option value="D+">D+</option>
+  <option value="D">D</option>
+  <option value="F">F</option>
+</select>
+</div>
     <div>
       <h4>เซคที่เรียน</h4>
-      <input type="text" className="input input-bordered w-full max-w-xs" value={sec} onChange={(e)=>{setSec(parseInt(e.target.value))}}/>
+      <input type="text" className="input input-bordered w-full max-w-xs" value={sec} onChange={(e)=>{setSec(e.target.value)}} data-test="review-sec"/>
     </div>
     <div>
       <h4>ปีการศึกษาที่เรียน</h4>
-      <input type="text" className="input input-bordered w-full max-w-xs" value={year} onChange={(e)=>{setYear(parseInt(e.target.value))}}/>
+      <input type="text" className="input input-bordered w-full max-w-xs" value={year} onChange={(e)=>{setYear(e.target.value)}} data-test="review-year"/>
     </div>
-    <button className="btn" onClick={handleClick}>ลงรีวิว</button>
+    <button className="btn" onClick={handleClick} data-test="review-submit-btn">ลงรีวิว</button>
     </div>)
     :
     (<div className="flex flex-col items-center justify-center">
     <div className="text-7xl">เข้าสู่ระบบเพื่อรีวิว</div>
-    <Link to="/auth" className="mt-8 btn">เข้าสู่ระบบ</Link>
+    <Link to="/auth" className="mt-8 btn" data-test="review-login-btn">เข้าสู่ระบบ</Link>
     </div>)}
   </div>
 </dialog>

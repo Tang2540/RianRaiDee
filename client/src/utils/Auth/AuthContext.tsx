@@ -31,7 +31,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const checkAuthStatus = async () => {
     try {
-        const response = await axios.get('http://localhost:3000/user',{ withCredentials: true });
+        const response = await axios.get('http://localhost:3000/api/profile/me',{ withCredentials: true });
         setUser(response.data.user);
       } catch (error) {
         return

@@ -7,8 +7,8 @@ const ReviewSchema = new Schema({
     user_id: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     content:String,
     grade: String,
-    sec: Number,
-    year: Number,
+    sec: String,
+    year: String,
     publish_date: String
 })
 

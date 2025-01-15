@@ -9,7 +9,7 @@ import Setting from './pages/Setting';
 
 const fetchPlace = async ({params}:LoaderFunctionArgs) => {
   const id = params.id
-  const res = await fetch(`http://localhost:3000/api/place/${id}`);
+  const res = await fetch(`http://localhost:3000/api/course/${id}`);
   const data = await res.json();
   console.log(data)
   return data

@@ -28,7 +28,7 @@ if(placeItem){
   
   return (
     <>
-      <div className="flex items-center mb-2">
+      <div className="flex items-center mb-2" data-test="comment-box-user">
         <div
           tabIndex={0}
           role="button"
@@ -41,17 +41,17 @@ if(placeItem){
             />
           </div>
         </div>
-        <Link to={`/profile/${placeItem.user_id}`}>
+        <Link to={`/profile/${placeItem.user_id}`} data-test="comment-display-name">
           {placeItem.user.display_name}
         </Link>
       </div>
-      <p>{placeItem.content}</p>
+      <p data-test="comment-content">{placeItem.content}</p>
 
-      <div className="mt-6">
-        <p>เกรดที่ได้: {placeItem.grade}</p>
-        <p>sec: {placeItem.sec}</p>
-        <p>ปีการศึกษา: {placeItem.year}</p>
-        <p>{placeItem.publish_date}</p>
+      <div className="mt-6" data-test="comment-box-detail">
+        <p data-test="grade">เกรดที่ได้: {placeItem.grade}</p>
+        <p data-test="sec">sec: {placeItem.sec}</p>
+        <p data-test="year">ปีการศึกษา: {placeItem.year}</p>
+        <p data-test="date">{placeItem.publish_date}</p>
       </div>
       <div className="divider"></div>
     </>

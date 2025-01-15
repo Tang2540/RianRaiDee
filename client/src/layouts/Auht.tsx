@@ -23,11 +23,11 @@ function Auth() {
     e.preventDefault();
     setError('');
     if (password !== confirmPassword) {
-      setError("Passwords don't match");
+      setError("รหัสผ่านไม่ตรงกัน");
       return;
     }
     try {
-      const response = await axios.post("http://localhost:3000/register", {
+      const response = await axios.post("http://localhost:3000/auth/register", {
         displayName,
         email,
         password,
@@ -45,7 +45,7 @@ function Auth() {
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      const response = await axios.post("http://localhost:3000/login", {
+      const response = await axios.post("http://localhost:3000/auth/login", {
         username,
         password,
       });
@@ -61,7 +61,7 @@ function Auth() {
 
   const handleLogout = async () => {
     try {
-      await axios.post("http://localhost:3000/logout");
+      await axios.post("http://localhost:3000/auth/logout");
       setUser(null);
     } catch (error) {
       console.error("Error logging out:", error);
@@ -121,6 +121,7 @@ function Auth() {
                       selectedOption === "signup" ? "btn-active" : ""
                     }`}
                     onClick={() => setSelectedOption("signup")}
+                    data-test="signup-btn"
                   >
                     Sign Up
                   </button>
@@ -142,6 +143,7 @@ function Auth() {
                             setUsername(e.target.value);
                           }}
                           required
+                          data-test="login-email"
                         />
                       </div>
                       <div className="form-control">
@@ -155,6 +157,7 @@ function Auth() {
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           required
+                          data-test="login-password"
                         />
                         <label className="label">
                           <a
@@ -166,7 +169,7 @@ function Auth() {
                         </label>
                       </div>
                       <div className="form-control mt-6">
-                        <button type="submit" className="btn btn-primary">
+                        <button type="submit" className="btn btn-primary" data-test="login-submit">
                           Login
                         </button>
                       </div>
@@ -194,6 +197,7 @@ function Auth() {
                             setEmail(e.target.value);
                           }}
                           required
+                          data-test="signup-email"
                         />
                       </div>
                       <div className="form-control">
@@ -209,6 +213,7 @@ function Auth() {
                             setDisplayName(e.target.value);
                           }}
                           required
+                          data-test="signup-displayname"
                         />
                       </div>
                       <div className="form-control">
@@ -222,6 +227,7 @@ function Auth() {
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           required
+                          data-test="signup-password"
                         />
                         <label className="label">
                           <span className="label-text">Confirm Password</span>
@@ -233,10 +239,11 @@ function Auth() {
                           value={confirmPassword}
                           onChange={(e) => setConfirmPassword(e.target.value)}
                           required
+                          data-test="signup-confirm-password"
                         />
                       </div>
                       <div className="form-control mt-6">
-                        <button type="submit" className="btn btn-primary">
+                        <button type="submit" className="btn btn-primary" data-test="signup-submit">
                           Create an account
                         </button>
                       </div>

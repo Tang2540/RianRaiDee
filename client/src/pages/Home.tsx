@@ -7,7 +7,7 @@ const Home = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await fetch("http://localhost:3000/api/place");
+      const response = await fetch("http://localhost:3000/api/course");
       const data = await response.json();
       setData(data);
     };

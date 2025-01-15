@@ -1,15 +1,18 @@
 import { useAuth } from "../utils/Auth/useAuth"
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const Avatar = () => {
 
-    const {user,setUser} = useAuth();
+    const {user,setUser, checkAuthStatus} = useAuth();
+    const navigate = useNavigate()
 
-    const handleLogout = async () => {
+   const handleLogout = async () => {
         try {
-          await axios.post('http://localhost:3000/logout');
+          await axios.post('http://localhost:3000/auth/logout');
+          checkAuthStatus()
           setUser(null);
+          navigate('/')
         } catch (error) {
           console.error('Error logging out:', error);
         }
@@ -21,7 +24,7 @@ const Avatar = () => {
       <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar">
         <div className="w-10 rounded-full" data-test="navbar-profile-img"><img
             alt={user?._id}
-            src={user?.googleId?(user?.picture):("http://localhost:3000/images/"+user?.picture)}/>
+            src={"http://localhost:3000/images/"+user?.picture}/>
         </div>
       </div>
       <ul
